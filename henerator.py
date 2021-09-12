@@ -2207,10 +2207,14 @@ if __name__ == '__main__':
     createIndex(title = args.title,  width = args.width, height = args.height, thumbnail_ext = thumbnail_ext )
 
     export_name = uniquify('heneration.zip')
+
     zip_file = ZipFile(export_name, 'w')
     zip_file.write('shader.frag')
     zip_file.write('thumbnail.' + thumbnail_ext)
     zip_file.write('index.html')
     zip_file.close()
+
+    cmd = "cp thumbnail." + thumbnail_ext + " '" + export_name[: len(export_name) - 3] + thumbnail_ext + "'"
+    os.system(cmd)
 
     clean()
