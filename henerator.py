@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 from zipfile import ZipFile
 
 def makeGif(fps = 24):
-    cmd = 'ffmpeg -r ' + str(fps) + ' -i %05d.png -vf "fps=' + str(fps) + ',split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 1 thumbnail.gif'
+    cmd = 'ffmpeg -r ' + str(fps) + ' -i %05d.png -vf "fps=' + str(fps) + ',split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 thumbnail.gif'
     os.system(cmd)
 
 def makeMp4(fps = 24):
