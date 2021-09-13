@@ -14,7 +14,7 @@ A simple script to generate HeN ipfs app exports from any frag shader created wi
 2. Excecute `henerator.py` follow with the `--title NAME` of your work and (optionally) the ```--duration_secs SECONDS``` of the thumbnail GIF. If you don't set a duration it will use the first frame as an image.
 
 ```
-./henerator.py test.frag --title ball --duration_secs 2.5
+./henerator.py test.frag --title ball --duration 2.5
 ```
 
 3. That's all! Y ou should see a `heneration.zip` file in the same folder.
@@ -24,7 +24,7 @@ A simple script to generate HeN ipfs app exports from any frag shader created wi
 * `--width WIDTH` of the thumbnail
 * `--height HEIGHT` of the thumbnail
 * `--fps FPS ` of the thumbnail animation
-* `--start_sec SECONDS ` of the thumbnail animation
+* `--start SECONDS ` of the thumbnail animation
 * `--pixel_density PIXEL_density ` of the thumbnail (in MacOS usually is 2)
 
 ## Requirements and Install

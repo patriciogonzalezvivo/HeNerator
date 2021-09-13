@@ -1,22 +1,75 @@
 #!/usr/bin/env python
 
 import os
+import re
 import sys
+import urllib
+import requests
+import datetime
 
 from argparse import ArgumentParser
 from zipfile import ZipFile
+
+TMP_FOLDER = '/tmp/'
 
 def makeGif(fps = 24):
     cmd = 'ffmpeg -r ' + str(fps) + ' -i %05d.png -vf "fps=' + str(fps) + ',split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 thumbnail.gif'
     os.system(cmd)
 
+
 def makeMp4(fps = 24):
     cmd = 'ffmpeg -r ' + str(fps) + ' -i %05d.png -vcodec libx264 -crf 25 -pix_fmt yuv420p video.mp4'
     os.system(cmd)
 
+
 def clean():
-    cmd = "rm ?????.png thumbnail.* shader.frag index.html"
+    cmd = "rm -f ?????.png thumbnail.* shader.frag index.html"
     os.system(cmd)
+
+
+def savePath(path):
+    if path.startswith('http'):
+        http = urllib.URLopener()
+        long_path, filename = os.path.split(path)
+        tmp_path = TMP_FOLDER + filename
+        http.retrieve(path, tmp_path)
+        path=tmp_path
+    return path
+
+
+def saveName(name):
+    name = name.replace('\n', '')
+    name = name.replace('\r', '')
+    name = name.replace("\t", '')
+    name = name.replace("'", '')
+    name = name.replace('"', '')
+    name = name.replace('$', '')
+    name = name.replace('!', '')
+    name = name.replace('?', '')
+    name = name.replace('#', '')
+    name = name.replace('%', '')
+    name = name.replace('^', '')
+    name = name.replace('~', '')
+    name = name.replace('+', '')
+    name = name.replace('=', '_')
+    name = name.replace('-', '_')
+    name = name.replace('&', '_')
+    name = name.replace(',', '_')
+    name = name.replace('.', '_')
+    name = name.replace(':', '_')
+    name = name.replace(';', '_')
+    return name
+
+def uniquify(path):
+    filename, extension = os.path.splitext(path)
+    counter = 1
+
+    while os.path.exists(path):
+        path = filename + '_' + str(counter).zfill(3) + extension
+        counter += 1
+
+    return path
+
 
 def export( filename,
             width = 1024, height = 1024,  fps = 24, pixel_density = 1,
@@ -44,17 +97,8 @@ def export( filename,
     
     os.system(cmd)
 
-def uniquify(path):
-    filename, extension = os.path.splitext(path)
-    counter = 1
 
-    while os.path.exists(path):
-        path = filename + " (" + str(counter) + ")" + extension
-        counter += 1
-
-    return path
-
-def createIndex(title = " A Title ", 
+def createIndex(title = " A Title ", author = " An Author ", description = "",
                 width = 1024, height = 1024, thumbnail_ext = "gif" ):
 
     file = open("index.html", "w")
@@ -69,7 +113,12 @@ def createIndex(title = " A Title ",
       name='viewport'
       content='width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0'
     />
-    <meta property='og:image' content='thumbnail.""" + thumbnail_ext + """' />
+    <meta property="og:title" content='""" + title + """'/>
+    <meta property="og:description" content='""" + description + """'/>
+    <meta property='og:image' content='thumbnail.""" + thumbnail_ext + """'/>
+    <meta property="og:image:width" content='""" + str(width) + """'/>
+    <meta property="og:image:height" content='""" + str(height) + """'/>
+    <meta property="og:site_name" content='""" + author + """'/>
     <style>
       * {
         box-sizing: border-box;
@@ -93,7 +142,9 @@ def createIndex(title = " A Title ",
   <body>
     <canvas class='glslCanvas' data-fragment-url='shader.frag' width='""" + str(width) + """' height='""" + str(height) + """'></canvas>
   </body>
-  <!-- Probably good to insert a license for your NFT if you wish to. e.g. a CC license. -->
+
+  <!-- Copyright """ + author + """. All rights reserved. -->
+
   <script type='text/javascript'> 
     (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -2181,32 +2232,74 @@ def createIndex(title = " A Title ",
 
 
 if __name__ == '__main__':
-    INPUT = ""
-
     parser = ArgumentParser("Process an entire video from a stream")
     parser.add_argument('filename', metavar='your_shader.frag', type=str)
-    parser.add_argument('--title', default='Title', type=str)
+    parser.add_argument('--title', default='HeNeration', type=str)
+    parser.add_argument('--author', default='HeNeration', type=str)
     parser.add_argument('--width', default=1024, type=int)
     parser.add_argument('--height', default=1024, type=int)
     parser.add_argument('--fps', default=24, type=int)
-    parser.add_argument('--start_sec', default=0, type=float)
-    parser.add_argument('--duration_sec', default=0, type=float)
+    parser.add_argument('--start', default=0, type=float)
+    parser.add_argument('--duration', default=0, type=float)
     parser.add_argument('--pixel_density', default=1, type=float)
     args = parser.parse_args()
 
+    shader_path = args.filename
+    title = args.title
+    author = args.author
 
-    export( args.filename, 
+    # If it's a number interpreted as a BoS export
+    if shader_path.isdigit():
+        shader_path='https://thebookofshaders.com/log/' + shader_path + '.frag'
+
+    # If looks like a URL download it
+    shader_path = savePath(shader_path)
+
+    # If it uses 
+    counter=0
+    textures = {}
+    with open(shader_path) as f:
+        for line in f:
+            # Search for texture
+            result = re.search('uniform\\s*sampler2D\\s*([\\w]*);\\s*\\/\\/\\s*([\\w|\\:\\/\\/|\\.|\\-|\\_]*)', line, re.M)
+            if result:
+                uniform = result.group(1)
+                if uniform.startswith("u_buffer"):
+                    continue
+                url = result.group(2)
+                img_path = savePath(url)
+                print(counter, uniform, img_path)
+                textures[uniform] = img_path
+                counter += 1
+
+            # Search for title
+            result = re.search('\/\/\s*[T|t]itle\s*:\s*([\w|\s|\@|\(|\)|\-|\_]*)', line, re.M)
+            if result:
+                if result.group(1) != " " or result.group(1) != "":
+                    title = result.group(1)
+
+            result = re.search('\/\/\s*[A|a]uthor\s*[\:]?\s*([\w|\s|\@|\(|\)|\-|\_]*)', line, re.M)
+            if result:
+                if result.group(1) != " " or result.group(1) != "":
+                    author = result.group(1)
+
+    export( shader_path, 
             width = args.width, height = args.height, fps = args.fps, 
-            sec_in = args.start_sec, sec_out = (args.start_sec + args.duration_sec), pixel_density = args.pixel_density )
+            textures = textures,
+            sec_in = args.start, sec_out = (args.start + args.duration), pixel_density = args.pixel_density )
 
     thumbnail_ext = "png";
-    if (args.duration_sec != 0):
+    if (args.duration != 0):
         thumbnail_ext = "gif"
         makeGif(args.fps)
 
-    createIndex(title = args.title,  width = args.width, height = args.height, thumbnail_ext = thumbnail_ext )
+    title = saveName(title)
+    author = saveName(author)
+    year = datetime.datetime.now().year
 
-    export_name = uniquify('heneration.zip')
+    createIndex(title = title, author = str(year) + ' ' + author, width = args.width, height = args.height, thumbnail_ext = thumbnail_ext )
+
+    export_name = uniquify( title.replace(' ', '') + '.zip' )
 
     zip_file = ZipFile(export_name, 'w')
     zip_file.write('shader.frag')
