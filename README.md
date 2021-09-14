@@ -11,7 +11,7 @@ A simple script to generate HeN ipfs app exports from any frag shader created wi
 ## How it works?
 
 1. If you are using [GlslEditor](http://patriciogonzalezvivo.github.io/glslEditor/) or [The Book of Shaders's](https://editor.thebookofshaders.com/) on-line editor, download the file.
-2. Excecute `henerator.py` follow with the `--title NAME` of your work and (optionally) the ```--duration_secs SECONDS``` of the thumbnail GIF. If you don't set a duration it will use the first frame as an image.
+2. Excecute `henerator.py` follow with the `--title NAME` of your work and (optionally) the ```--duration SECONDS``` of the thumbnail GIF. If you don't set a duration it will use the first frame as an image.
 
 ```
 ./henerator.py test.frag --title ball --duration 2.5
