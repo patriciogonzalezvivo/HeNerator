@@ -19,13 +19,16 @@ A simple script to generate HeN ipfs app exports from any frag shader created wi
 
 3. That's all! Y ou should see a `heneration.zip` file in the same folder.
 
-### Other arguments 
+### Arguments 
 
-* `--width WIDTH` of the thumbnail
-* `--height HEIGHT` of the thumbnail
-* `--fps FPS ` of the thumbnail animation
-* `--start SECONDS ` of the thumbnail animation
-* `--pixel_density PIXEL_density ` of the thumbnail (in MacOS usually is 2)
+* `--title [TITLE_NAME]`
+* `--author [AUTHOR_NAME]` 
+* `--width [WIDTH]` of the thumbnail
+* `--height [HEIGHT]` of the thumbnail
+* `--fps [FPS] ` of the thumbnail animation
+* `--start [SECONDS] ` of the thumbnail animation
+* `--duration [SECONDS] ` of the thumbnail animation
+* `--pixel_density [PIXEL_DENSITY] ` of the thumbnail (in MacOS usually is 2)
 
 ## Requirements and Install
 
