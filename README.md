@@ -1,4 +1,4 @@
-![](.github/images/hen.jpeg)
+![](.github/thumbnail.gif)
 
 # HeNerator 
 A simple script to generate HeN ipfs app exports from any frag shader created with:
