@@ -12,8 +12,8 @@ from zipfile import ZipFile
 
 TMP_FOLDER = '/tmp/'
 
-def makeGif(fps = 24):
-    cmd = 'ffmpeg -r ' + str(fps) + ' -i %05d.png -vf "fps=' + str(fps) + ',split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 thumbnail.gif'
+def makeGif(width, height, fps = 24):
+    cmd = 'ffmpeg -r ' + str(fps) + ' -i %05d.png -vf "fps=' + str(fps) + ',scale=' + str(width) + ':' + str(height) + ':flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse" -loop 0 thumbnail.gif'
     os.system(cmd)
 
 
@@ -73,12 +73,14 @@ def uniquify(path):
 
 def export( filename,
             width = 1024, height = 1024,  fps = 24, pixel_density = 1,
-            textures = {}, 
+            textures = {}, fxaa = False,
             frame_in = 0, frame_out = 0, sec_in = 0, sec_out = 0 ):
 
     cmd = "glslViewer --headless "
     cmd += filename
     cmd += " --fps " + str(fps)
+    if fxaa:
+        cmd += " --fxaa "
     cmd += " -w " + str(width/pixel_density) + " -h " + str(height/pixel_density)
 
     if len(textures) > 0:
@@ -2239,6 +2241,7 @@ if __name__ == '__main__':
     parser.add_argument('--width', default=1024, type=int)
     parser.add_argument('--height', default=1024, type=int)
     parser.add_argument('--fps', default=24, type=int)
+    parser.add_argument('--fxaa', default=False, type=bool)
     parser.add_argument('--start', default=0, type=float)
     parser.add_argument('--duration', default=0, type=float)
     parser.add_argument('--pixel_density', default=1, type=float)
@@ -2285,13 +2288,13 @@ if __name__ == '__main__':
 
     export( shader_path, 
             width = args.width, height = args.height, fps = args.fps, 
-            textures = textures,
+            textures = textures, fxaa= args.fxaa,
             sec_in = args.start, sec_out = (args.start + args.duration), pixel_density = args.pixel_density )
 
     thumbnail_ext = "png";
     if (args.duration != 0):
         thumbnail_ext = "gif"
-        makeGif(args.fps)
+        makeGif(args.width, args.height, args.fps)
 
     title = saveName(title)
     author = saveName(author)
