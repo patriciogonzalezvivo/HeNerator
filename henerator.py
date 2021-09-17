@@ -2214,6 +2214,8 @@ def createIndex(title = " A Title ", author = " An Author ", description = "",
               var sandbox = new GlslCanvas(list[i]);
               if (sandbox.isValid) {
                   window.glslCanvases.push(sandbox);
+                  sandbox.width = window.screen.width;
+                  sandbox.height = window.screen.height;
               }
           }
       }
