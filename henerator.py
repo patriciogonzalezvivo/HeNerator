@@ -6,6 +6,8 @@ import sys
 import urllib
 import requests
 import datetime
+import string
+import random
 
 from argparse import ArgumentParser
 from zipfile import ZipFile
@@ -22,8 +24,11 @@ def makeMp4(fps = 24):
     os.system(cmd)
 
 
-def clean():
-    cmd = "rm -f ?????.png thumbnail.* shader.frag index.html"
+def id_generator(size=32, chars=string.ascii_lowercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
+
+def clean(shader_filename):
+    cmd = "rm -f ?????.png thumbnail.* index.html " + shader_filename
     os.system(cmd)
 
 
@@ -71,7 +76,7 @@ def uniquify(path):
     return path
 
 
-def export( filename,
+def export( filename, out,
             width = 1024, height = 1024,  fps = 24, pixel_density = 1,
             textures = {}, fxaa = False,
             frame_in = 0, frame_out = 0, sec_in = 0, sec_out = 0 ):
@@ -88,7 +93,7 @@ def export( filename,
         for t in textures:
             cmd += " --" + t + " " + textures[t]
         
-    cmd += " -e frag,shader.frag "
+    cmd += " -e frag," + out
 
     if (sec_out != 0):
         cmd += " -E secs," + str(sec_in) + "," + str(sec_out)
@@ -100,7 +105,7 @@ def export( filename,
     os.system(cmd)
 
 
-def createIndex(title = " A Title ", author = " An Author ", description = "",
+def createIndex(title = " A Title ", shader="shader.frag", author = " An Author ", description = "",
                 width = 1024, height = 1024, thumbnail_ext = "gif" ):
 
     file = open("index.html", "w")
@@ -142,7 +147,7 @@ def createIndex(title = " A Title ", author = " An Author ", description = "",
         </style>
     </head>
     <body>
-        <canvas class='glslCanvas' data-fragment-url='shader.frag' width='""" + str(width) + """' height='""" + str(height) + """'></canvas>
+        <canvas class='glslCanvas' data-fragment-url='""" + shader + """' width='""" + str(width) + """' height='""" + str(height) + """'></canvas>
     </body>
 
     <!-- Copyright """ + author + """. All rights reserved. -->
@@ -2204,6 +2209,8 @@ if __name__ == '__main__':
     # If looks like a URL download it
     shader_path = savePath(shader_path)
 
+    shader_filename = id_generator()
+
     # If it uses 
     counter=0
     textures = {}
@@ -2232,7 +2239,7 @@ if __name__ == '__main__':
                 if result.group(1) != " " or result.group(1) != "":
                     author = result.group(1)
 
-    export( shader_path, 
+    export( shader_path, out=shader_filename,
             width = args.width, height = args.height, fps = args.fps, 
             textures = textures, fxaa= args.fxaa,
             sec_in = args.start, sec_out = (args.start + args.duration), pixel_density = args.pixel_density )
@@ -2246,12 +2253,12 @@ if __name__ == '__main__':
     author = saveName(author)
     year = datetime.datetime.now().year
 
-    createIndex(title = title, author = str(year) + ' ' + author, width = args.width, height = args.height, thumbnail_ext = thumbnail_ext )
+    createIndex(title = title, shader=shader_filename, author = str(year) + ' ' + author, width = args.width, height = args.height, thumbnail_ext = thumbnail_ext )
 
     export_name = uniquify( title.replace(' ', '') + '.zip' )
 
     zip_file = ZipFile(export_name, 'w')
-    zip_file.write('shader.frag')
+    zip_file.write(shader_filename)
     zip_file.write('thumbnail.' + thumbnail_ext)
     zip_file.write('index.html')
     zip_file.close()
@@ -2259,4 +2266,4 @@ if __name__ == '__main__':
     cmd = "cp thumbnail." + thumbnail_ext + " '" + export_name[: len(export_name) - 3] + thumbnail_ext + "'"
     os.system(cmd)
 
-    clean()
+    clean(shader_filename)
