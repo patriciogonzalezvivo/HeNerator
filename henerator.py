@@ -78,7 +78,7 @@ def uniquify(path):
     return path
 
 
-def export( filename, out,
+def export( filename, out = None,
             width = 1024, height = 1024,  fps = 24, pixel_density = 1,
             textures = {}, fxaa = False,
             frame_in = 0, frame_out = 0, sec_in = 0, sec_out = 0 ):
@@ -95,7 +95,8 @@ def export( filename, out,
         for t in textures:
             cmd += " --" + t + " " + textures[t]
         
-    cmd += " -e frag," + out
+    if out != None:
+        cmd += " -e frag," + out
 
     if (sec_out != 0):
         cmd += " -E secs," + str(sec_in) + "," + str(sec_out)
@@ -2248,6 +2249,7 @@ def generate(shader_path, args):
         thumbnail_ext = "gif"
         makeGif(args.width, args.height, args.fps)
 
+
     title = saveName(title)
     author = saveName(author)
     year = datetime.datetime.now().year
@@ -2269,6 +2271,19 @@ def generate(shader_path, args):
 
     clean(shader_filename)
 
+    if args.duration_video != 0:
+        export( shader_path, 
+            width = args.width, height = args.height, fps = args.fps, 
+            textures = textures, fxaa= args.fxaa,
+            sec_in = args.start, sec_out = (args.start + args.duration_video), pixel_density = args.pixel_density )
+
+        makeMp4(args.fps)
+        cmd = "rm ?????.png "
+        os.system(cmd)
+
+        cmd = "mv video.mp4 '" + export_name[: len(export_name) - 3] + "mp4'"
+        os.system(cmd)
+
 
 if __name__ == '__main__':
     parser = ArgumentParser("Process an entire video from a stream")
@@ -2281,6 +2296,7 @@ if __name__ == '__main__':
     parser.add_argument('--fxaa', default=False, type=bool)
     parser.add_argument('--start', default=0, type=float)
     parser.add_argument('--duration', default=0, type=float)
+    parser.add_argument('--duration_video', default=0, type=float)
     parser.add_argument('--pixel_density', default=1, type=float)
     args = parser.parse_args()
 
