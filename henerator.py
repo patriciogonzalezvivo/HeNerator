@@ -8,6 +8,7 @@ import requests
 import datetime
 import string
 import random
+import glob
 
 from argparse import ArgumentParser
 from zipfile import ZipFile
@@ -2187,21 +2188,7 @@ def createIndex(title = " A Title ", shader="shader.frag", author = " An Author 
     file.close()
 
 
-if __name__ == '__main__':
-    parser = ArgumentParser("Process an entire video from a stream")
-    parser.add_argument('filename', metavar='your_shader.frag', type=str)
-    parser.add_argument('--title', default='HeNeration', type=str)
-    parser.add_argument('--author', default='HeNeration', type=str)
-    parser.add_argument('--width', default=1024, type=int)
-    parser.add_argument('--height', default=1024, type=int)
-    parser.add_argument('--fps', default=24, type=int)
-    parser.add_argument('--fxaa', default=False, type=bool)
-    parser.add_argument('--start', default=0, type=float)
-    parser.add_argument('--duration', default=0, type=float)
-    parser.add_argument('--pixel_density', default=1, type=float)
-    args = parser.parse_args()
-
-    shader_path = args.filename
+def generate(shader_path, args):
     title = args.title
     author = args.author
 
@@ -2281,3 +2268,27 @@ if __name__ == '__main__':
     os.system(cmd)
 
     clean(shader_filename)
+
+
+if __name__ == '__main__':
+    parser = ArgumentParser("Process an entire video from a stream")
+    parser.add_argument('filename', metavar='your_shader.frag', type=str)
+    parser.add_argument('--title', default='HeNeration', type=str)
+    parser.add_argument('--author', default='HeNeration', type=str)
+    parser.add_argument('--width', default=1024, type=int)
+    parser.add_argument('--height', default=1024, type=int)
+    parser.add_argument('--fps', default=24, type=int)
+    parser.add_argument('--fxaa', default=False, type=bool)
+    parser.add_argument('--start', default=0, type=float)
+    parser.add_argument('--duration', default=0, type=float)
+    parser.add_argument('--pixel_density', default=1, type=float)
+    args = parser.parse_args()
+
+    files = glob.glob(args.filename)
+
+    if len(files) == 0:
+        files.append(args.filename)
+        
+    for file in files:
+        generate(file, args)
+    
