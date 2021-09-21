@@ -27,8 +27,9 @@ def makeMp4(fps = 24):
 def id_generator(size=32, chars=string.ascii_lowercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
+
 def clean(shader_filename):
-    cmd = "rm -f ?????.png thumbnail.* index.html " + shader_filename
+    cmd = "rm -f ?????.png thumbnail.* index.html " + shader_filename + "*" 
     os.system(cmd)
 
 
@@ -228,6 +229,8 @@ def createIndex(title = " A Title ", shader="shader.frag", author = " An Author 
         else
             forEachObject(list, iterator, context);
     }
+
+    const flipPairs = str => str.replace(/(.)(.)/g, '$2$1');
 
     function forEachArray$1(array, iterator, context) {
         for (var i = 0, len = array.length; i < len; i++) {
@@ -1635,7 +1638,7 @@ def createIndex(title = " A Title ", shader="shader.frag", author = " An Author 
                     if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
                         defines = '#define PLATFORM_MOBILE\\n'
                     }
-                    this.fragmentString = defines + fragString;
+                    this.fragmentString = defines + flipPairs(fragString);
                 }
 
                 this.animated = false;
@@ -2239,10 +2242,19 @@ if __name__ == '__main__':
                 if result.group(1) != " " or result.group(1) != "":
                     author = result.group(1)
 
-    export( shader_path, out=shader_filename,
+    export( shader_path, out=shader_filename+'.frag',
             width = args.width, height = args.height, fps = args.fps, 
             textures = textures, fxaa= args.fxaa,
             sec_in = args.start, sec_out = (args.start + args.duration), pixel_density = args.pixel_density )
+
+    # Scramble chars
+    shader_in_file = open(shader_filename+'.frag', "r")
+    shader_out_file = open(shader_filename, "w")
+    lines_in = shader_in_file.read()
+    lines_out = re.sub( r'(.)(.)',r"\2\1", lines_in.replace('\r', ' ').replace('\t', ' ') .replace('  ', ' ').replace('  ', ' ').replace('  ', ' ').replace('\n \n', '\n').replace('\n\n', '\n')  )
+    shader_out_file.write(lines_out)
+    shader_in_file.close()
+    shader_out_file.close()
 
     thumbnail_ext = "png";
     if (args.duration != 0):
@@ -2255,7 +2267,9 @@ if __name__ == '__main__':
 
     createIndex(title = title, shader=shader_filename, author = str(year) + ' ' + author, width = args.width, height = args.height, thumbnail_ext = thumbnail_ext )
 
-    export_name = uniquify( title.replace(' ', '') + '.zip' )
+    export_name = os.path.basename(shader_path)
+    export_name = os.path.splitext(export_name)[0]
+    export_name = uniquify( export_name + '_' + title.replace(' ', '') + '.zip' )
 
     zip_file = ZipFile(export_name, 'w')
     zip_file.write(shader_filename)
