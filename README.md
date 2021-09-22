@@ -32,7 +32,7 @@ A simple script to generate HeN ipfs app exports from any frag shader created wi
 
 ## Requirements and Install
 
-* Latest version of [GlslViewer](https://github.com/patriciogonzalezvivo/glslViewer/wiki/Compiling)
+* Latest version of [GlslViewer](https://github.com/patriciogonzalezvivo/glslViewer/wiki/Compiling) (and installed on your system path)
 * [Ffmpeg](https://ffmpeg.org/download.html) (only required to make animated GIFs for your thumbnails)
 * Python3 
 * ArgParse and Requests modules for Python3 
