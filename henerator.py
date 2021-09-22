@@ -108,7 +108,8 @@ def export( filename, out = None,
     os.system(cmd)
 
 
-def createIndex(title = " A Title ", shader="shader.frag", author = " An Author ", description = "",
+def createHTML( shader="shader.frag", scramble_source=False,
+                title = " A Title ", author = " An Author ", description = "",
                 width = 1024, height = 1024, thumbnail_ext = "gif" ):
 
     file = open("index.html", "w")
@@ -1640,7 +1641,7 @@ def createIndex(title = " A Title ", shader="shader.frag", author = " An Author 
                     if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
                         defines = '#define PLATFORM_MOBILE\\n'
                     }
-                    this.fragmentString = defines + flipPairs(fragString);
+                    this.fragmentString = defines + """ + ( "flipPairs" if scramble_source  else "" ) + """(fragString);
                 }
 
                 this.animated = false;
@@ -2200,7 +2201,7 @@ def generate(shader_path, args):
     # If looks like a URL download it
     shader_path = savePath(shader_path)
 
-    shader_filename = id_generator()
+    shader_name = id_generator()
 
     # If it uses 
     counter=0
@@ -2230,38 +2231,45 @@ def generate(shader_path, args):
                 if result.group(1) != " " or result.group(1) != "":
                     author = result.group(1)
 
-    export( shader_path, out=shader_filename+'.frag',
+    shader_filename = shader_name
+    if args.scramble_source:
+        shader_filename = shader_name + '.frag'
+
+    export( shader_path, out=shader_filename,
             width = args.width, height = args.height, fps = args.fps, 
             textures = textures, fxaa= args.fxaa,
             sec_in = args.start, sec_out = (args.start + args.duration), pixel_density = args.pixel_density )
 
     # Scramble chars
-    shader_in_file = open(shader_filename+'.frag', "r")
-    shader_out_file = open(shader_filename, "w")
-    lines_in = shader_in_file.read()
-    lines_out = re.sub( r'(.)(.)',r"\2\1", lines_in.replace('\r', ' ').replace('\t', ' ') .replace('  ', ' ').replace('  ', ' ').replace('  ', ' ').replace('\n \n', '\n').replace('\n\n', '\n')  )
-    shader_out_file.write(lines_out)
-    shader_in_file.close()
-    shader_out_file.close()
+    if args.scramble_source:
+        shader_in_file = open(shader_filename, "r")
+        shader_out_file = open(shader_name, "w")
+        lines_in = shader_in_file.read()
+        lines_out = re.sub( r'(.)(.)',r"\2\1", lines_in.replace('\r', ' ').replace('\t', ' ') .replace('  ', ' ').replace('  ', ' ').replace('  ', ' ').replace('\n \n', '\n').replace('\n\n', '\n')  )
+        shader_out_file.write(lines_out)
+        shader_in_file.close()
+        shader_out_file.close()
 
     thumbnail_ext = "png";
     if (args.duration != 0):
         thumbnail_ext = "gif"
         makeGif(args.width, args.height, args.fps)
 
-
     title = saveName(title)
     author = saveName(author)
     year = datetime.datetime.now().year
 
-    createIndex(title = title, shader=shader_filename, author = str(year) + ' ' + author, width = args.width, height = args.height, thumbnail_ext = thumbnail_ext )
+    createHTML( shader=shader_name, scramble_source=args.scramble_source,
+                title = title, author = str(year) + ' ' + author,
+                width = args.width, height = args.height, 
+                thumbnail_ext = thumbnail_ext )
 
     export_name = os.path.basename(shader_path)
     export_name = os.path.splitext(export_name)[0]
     export_name = uniquify( export_name + '_' + title.replace(' ', '') + '.zip' )
 
     zip_file = ZipFile(export_name, 'w')
-    zip_file.write(shader_filename)
+    zip_file.write(shader_name)
     zip_file.write('thumbnail.' + thumbnail_ext)
     zip_file.write('index.html')
     zip_file.close()
@@ -2269,7 +2277,7 @@ def generate(shader_path, args):
     cmd = "cp thumbnail." + thumbnail_ext + " '" + export_name[: len(export_name) - 3] + thumbnail_ext + "'"
     os.system(cmd)
 
-    clean(shader_filename)
+    clean(shader_name)
 
     if args.duration_video != 0:
         export( shader_path, 
@@ -2298,6 +2306,7 @@ if __name__ == '__main__':
     parser.add_argument('--duration', default=0, type=float)
     parser.add_argument('--duration_video', default=0, type=float)
     parser.add_argument('--pixel_density', default=1, type=float)
+    parser.add_argument('--scramble_source', default=False, type=bool)
     args = parser.parse_args()
 
     files = glob.glob(args.filename)
