@@ -25,10 +25,13 @@ A simple script to generate HeN ipfs app exports from any frag shader created wi
 * `--author [AUTHOR_NAME]` 
 * `--width [WIDTH]` of the thumbnail
 * `--height [HEIGHT]` of the thumbnail
+* `--FXAA [defualt FALSE]` apply antialiasing to thumbnail image animation or/and video
 * `--fps [FPS] ` of the thumbnail animation
-* `--start [SECONDS] ` of the thumbnail animation
-* `--duration [SECONDS] ` of the thumbnail animation
-* `--pixel_density [PIXEL_DENSITY] ` of the thumbnail (in MacOS usually is 2)
+* `--start [SECONDS] ` of the thumbnail GIF animation or MP4 video
+* `--duration [SECONDS] ` of the thumbnail GIF animation
+* `--duration_video [SECONDS]`
+* `--pixel_density [PIXEL_DENSITY] ` adjust the pixel density if your images and videos have twice the resolution 
+* `--scramble_source [default FALSE]` scramble your shader source code
 
 ## Requirements and Install
 
