@@ -1649,7 +1649,11 @@ def createHTML( shader="shader.frag", scramble_source=False,
                 this.nTime = (this.fragmentString.match(/u_time/g) || []).length;
                 this.nDate = (this.fragmentString.match(/u_date/g) || []).length;
                 this.nMouse = (this.fragmentString.match(/u_mouse/g) || []).length;
-                this.animated = this.nDate > 1 || this.nTime > 1 || this.nMouse > 1;
+                this.nFrame = (this.fragmentString.match(/u_frame/g) || []).length;
+                this.animated = this.nDate > 1 || this.nTime > 1 || this.nMouse > 1 || this.nFrame > 1;
+
+                if (this.nFrame > 1)
+                    this.frameN = 0;
 
                 var nTextures = this.fragmentString.search(/sampler2D/g);
                 if (nTextures) {
@@ -1946,6 +1950,12 @@ def createHTML( shader="shader.frag", scramble_source=False,
                     if (this.nDate) {
                         // Set date uniform: year/month/day/time_in_sec
                         this.uniform('4f', 'float', 'u_date', date.getFullYear(), date.getMonth(), date.getDate(), date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds() + date.getMilliseconds() * 0.001);
+                    }
+
+                    if (this.nFrame > 1) {
+                        // set frame number
+                        this.uniform('1i', 'int', 'u_frame', this.frameN);
+                        this.frameN++;
                     }
 
                     // set the resolution uniform
